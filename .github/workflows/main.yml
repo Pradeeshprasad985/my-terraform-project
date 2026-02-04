@@ -1,17 +1,28 @@
-# Base image
-FROM python:3.9-slim
+name: Build and Push Docker Image
 
-# Set working directory
-WORKDIR /app
+on:
+  push:
+    branches:
+      - main
 
-# Copy app files
-COPY app.py .
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# Install dependencies
-RUN pip install reqiruements.txt
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-# Expose port
-EXPOSE 5000
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-# Run the app
-CMD ["python", "app.py"]
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/flask-demo:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/flask-demo:latest
